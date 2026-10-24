@@ -44,10 +44,24 @@ def require_protocol(a2a_version: str | None, content_type: str | None):
 
 def require_auth(authorization: str | None):
     if not TOKEN:
-        raise HTTPException(status_code=503, detail="Service authentication is not configured")
-    if authorization != f"Bearer {TOKEN}":
+        print("AUTH CHECK: A2A_BEARER_TOKEN is empty")
+        raise HTTPException(
+            status_code=503,
+            detail="Service authentication is not configured"
+        )
+
+    expected = f"Bearer {TOKEN}"
+
+    if authorization != expected:
+        print(
+            "AUTH CHECK: token mismatch; "
+            f"configured_length={len(TOKEN)}, "
+            f"received_header_present={authorization is not None}, "
+            f"received_bearer_prefix={authorization.startswith('Bearer ') if authorization else False}"
+        )
         raise HTTPException(status_code=401, detail="Unauthorized")
-    return authorization.removeprefix("Bearer ")
+
+    return TOKEN
 
 def a2a_response(task):
     return JSONResponse({"task": task}, media_type="application/a2a+json")
